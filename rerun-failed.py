@@ -41,6 +41,7 @@ def rerun_last_failed_jobs(pr_url: str, workflow: str = DEFAULT_WORKFLOW) -> Non
         'X-GitHub-Api-Version': '2022-11-28',
     }
     res = requests.post(f"https://api.github.com/repos/{repo}/actions/runs/{run.id}/rerun-failed-jobs", headers=headers)
+    print(res.json())
     print("Rerun success" if res.status_code == 201 else "Rerun failed")
     if res.status_code != 201:
         sys.exit(1)
