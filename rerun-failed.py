@@ -40,7 +40,7 @@ def rerun_last_failed_jobs(pr_url: str, workflow: str = DEFAULT_WORKFLOW) -> Non
         'Authorization': f"Bearer {os.getenv('GITHUB_TOKEN')}",
         'X-GitHub-Api-Version': '2022-11-28',
     }
-    res = requests.post(f"https://api.github.com/repos/L2ncE/CloudWeGo-101/actions/runs/{run.id}/rerun-failed-jobs", headers=headers)
+    res = requests.post(f"https://api.github.com/repos/{repo.name}/actions/runs/{run.id}/rerun-failed-jobs", headers=headers)
     print(res.json())
     print(f"https://api.github.com/repos/L2ncE/CloudWeGo-101/actions/runs/{run.id}/rerun-failed-jobs")
     print("Rerun success" if res.status_code == 201 else "Rerun failed")
