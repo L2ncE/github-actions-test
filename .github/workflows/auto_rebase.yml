@@ -1,0 +1,40 @@
+name: Auto Rebase Triggered by Comment
+on:
+  repository_dispatch:
+    types: [rebase-command]
+
+jobs:
+  code_format:
+    name: Code Rebase
+    runs-on: ubuntu-latest
+    steps:
+      - name: clone branch of PR
+        uses: actions/checkout@v2
+        with:
+          token: ${{ secrets.GARDENER_PAT }}
+          ref: ${{ github.event.client_payload.pull_request.head.ref }}
+          repository: ${{ github.event.client_payload.pull_request.head.repo.full_name }}
+          fetch-depth: 0
+      - name: Rebase
+        shell: bash
+        run: |
+          exit_with_comment() {
+            echo "Rebase failed"
+            gh pr comment "${{ github.event.client_payload.pull_request.html_url }}" --body "Rebase failed, please resolve the conflicts manually."
+            exit 1
+          }
+
+          git config user.email "taichigardener@gmail.com"
+          git config user.name "Taichi Gardener"
+          git remote add upstream ${{ github.event.client_payload.pull_request.base.repo.clone_url }}
+          git fetch upstream master
+          git rebase upstream/master || exit_with_comment
+        env:
+          GITHUB_TOKEN: ${{ secrets.GARDENER_PAT }}
+      - name: Push changes
+        uses: ad-m/github-push-action@master
+        with:
+          GITHUB_TOKEN: ${{ secrets.GARDENER_PAT }}
+          branch: ${{ github.event.client_payload.pull_request.head.ref }}
+          repository: ${{ github.event.client_payload.pull_request.head.repo.full_name }}
+          force: true

@@ -1,0 +1,50 @@
+name: Auto Benchmark Triggered by Comment
+on:
+  repository_dispatch:
+    types: [benchmark-command]
+
+jobs:
+  gpu_backends:
+    name: Performance monitoring (NVIDIA GPU)
+    timeout-minutes: 60
+    runs-on: [self-hosted, x64, cuda, linux, benchmark]
+    steps:
+      - name: clone branch of PR
+        uses: actions/checkout@v2
+        with:
+          token: ${{ secrets.GARDENER_PAT }}
+          ref: ${{ github.event.client_payload.pull_request.head.ref }}
+          repository: ${{ github.event.client_payload.pull_request.head.repo.full_name }}
+          submodules: "recursive"
+      
+      - name: Build & Install
+        run: |
+          .github/workflows/scripts/unix_build.sh
+          python3 -m pip install dist/*.whl
+      
+      - name: Run performance-monitoring
+        id: get-comment-body
+        run: |
+          cd ..
+          rm -rf performance-monitoring
+          git clone git@github.com:taichi-dev/performance-monitoring.git
+          cd performance-monitoring
+          export WORKFLOW_MODE=presubmit
+          ./run.sh
+          body=$(cat fluctuation.md)
+          body="${body//'%'/'%25'}"
+          body="${body//$'\n'/'%0A'}"
+          body="${body//$'\r'/'%0D'}"
+          echo ::set-output name=body::$body
+          rm evaluation.md
+        env:
+          GITHUB_CONTEXT: ${{ toJson(github) }}
+
+      - name: Create comment
+        uses: peter-evans/create-or-update-comment@v1
+        with:
+          token: ${{ secrets.GARDENER_PAT }}
+          repository: ${{ github.event.client_payload.github.payload.repository.full_name }}
+          issue-number: ${{ github.event.client_payload.github.payload.issue.number }}
+          body: ${{ steps.get-comment-body.outputs.body }}
+          # reactions: hooray

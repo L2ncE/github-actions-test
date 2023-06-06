@@ -1,0 +1,2 @@
+pygithub==1.55
+ghstack>=0.7.1
