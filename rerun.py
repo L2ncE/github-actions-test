@@ -1,7 +1,7 @@
 import os
 from github import Github
 
-DEFAULT_WORKFLOW = "Build and Test"
+DEFAULT_WORKFLOW = "CI"
 
 
 def rerun_last_failed_run(pr_url: str, workflow: str = DEFAULT_WORKFLOW) -> None:
@@ -29,6 +29,9 @@ def rerun_last_failed_run(pr_url: str, workflow: str = DEFAULT_WORKFLOW) -> None
         f"Run URL: {run.html_url}\n"
         f"Run status: {run.status}\n"
         f"Run conclusion: {run.conclusion}\n"
+        f"Run event: {run.event}\n"
+        f"Run rerun url : {run.rerun_url}\n"
+        f"Run jobs_url : {run.jobs_url}\n"
     )
     if run.status != "completed" or run.conclusion not in ("failure", "cancelled"):
         raise ValueError("The run status doesn't meet the requirement to rerun")
