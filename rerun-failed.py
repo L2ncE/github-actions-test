@@ -47,6 +47,7 @@ def rerun_last_failed_jobs(pr_url: str, workflow: str = DEFAULT_WORKFLOW) -> Non
         sys.exit(1)
 
 
+
 if __name__ == "__main__":
     import sys
 
